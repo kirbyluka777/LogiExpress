@@ -1,4 +1,5 @@
 :- module(modulo1, [menu/0]).
+:- use_module(utils).
 
 :- dynamic vuelo/7.
 :- dynamic tmc/1.
@@ -63,7 +64,10 @@ configurar_tmc(Minutos) :-
 vuelos_salida(Ciudad, Lista) :-
     findall(
         vuelo(O,D,S,L,C,Cod,Dia),
-        vuelo(Ciudad,D,S,L,C,Cod,Dia),
+        (
+            vuelo(O,D,S,L,C,Cod,Dia),
+            ciudad_igual(O, Ciudad)
+        ),
         Lista
     ).
 
@@ -71,8 +75,11 @@ vuelos_salida(Ciudad, Lista) :-
 
 vuelos_llegada(Ciudad, Lista) :-
     findall(
-        vuelo(O,Ciudad,S,L,C,Cod,Dia),
-        vuelo(O,Ciudad,S,L,C,Cod,Dia),
+        vuelo(O,D,S,L,C,Cod,Dia),
+        (
+            vuelo(O,D,S,L,C,Cod,Dia),
+            ciudad_igual(D, Ciudad)
+        ),
         Lista
     ).
 
@@ -92,44 +99,93 @@ mostrar_vuelos([
 
 
 %cli
+% MENU INTERACTIVO
+
 menu :-
+    (
+        cargar_vuelos('../vuelos.txt')
+        ->
+        writeln('Vuelos cargados correctamente.')
+        ;
+        writeln('Error: No se pudo cargar vuelos.txt.')
+    ),
     repeat,
     nl,
     writeln('====== MODULO 1 ======'),
-    writeln('1. Cargar vuelos'),
+    writeln('1. Recargar vuelos'),
     writeln('2. Consultar vuelos de salida'),
     writeln('3. Consultar vuelos de llegada'),
     writeln('4. Configurar TMC'),
     writeln('0. Volver'),
-    write('Seleccione una opcion: '),
+    leer_entero('Seleccione una opcion: ', Sel),
 
-    read(Sel),
+    (
+        Sel = 0
+        ->
+        writeln('Volviendo al menu principal...'),
+        !
+        ;
+        once(seleccion(Sel)),
+        fail
+    ).
 
-    seleccion(Sel),
 
-    Sel = 0,
-    !.
+% Cargar vuelos
 
 seleccion(1) :-
     cargar_vuelos('../vuelos.txt'),
     writeln('Vuelos cargados correctamente.').
 
+
+% Consultar vuelos de salida
+
 seleccion(2) :-
-    write('Ingrese la ciudad: '),
-    read(Ciudad),
+    write('Ingrese la ciudad de origen: '),
+    flush_output,
+    leer_linea(Ciudad),
     vuelos_salida(Ciudad, Lista),
-    mostrar_vuelos(Lista).
+    mostrar_vuelos(Lista),
+
+    (
+        Lista = []
+        ->
+        format('No hay vuelos que salgan de ~s.~n', [Ciudad])
+        ;
+        mostrar_vuelos(Lista)
+    ).
+
+
+% Consultar vuelos de llegada
 
 seleccion(3) :-
-    write('Ingrese la ciudad: '),
-    read(Ciudad),
+    write('Ingrese la ciudad de destino: '),
+    flush_output,
+    leer_linea(Ciudad),
     vuelos_llegada(Ciudad, Lista),
-    mostrar_vuelos(Lista).
+
+    (
+        Lista = []
+        ->
+        format('No hay vuelos que lleguen a ~s.~n', [Ciudad])
+        ;
+        mostrar_vuelos(Lista)
+    ).
+
+
+% Configurar TMC
 
 seleccion(4) :-
-    write('Ingrese el TMC en minutos: '),
-    read(Minutos),
-    configurar_tmc(Minutos).
+    leer_entero('Ingrese el TMC en minutos: ', Minutos),
+    (
+        integer(Minutos),
+        Minutos >= 0
+        ->
+        configurar_tmc(Minutos),
+        format('TMC configurado en ~w minutos.~n', [Minutos])
+        ;
+        writeln('Error: introduzca un numero entero mayor o igual a cero.')
+    ).
+
 
 seleccion(0) :-
     writeln('A').

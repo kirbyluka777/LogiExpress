@@ -4,17 +4,36 @@
 main :-
     repeat,
     nl,
-    writeln('====== LOGIEXPRESS - CONTORL DE VUELOS ======'),
+    writeln('====== LOGIEXPRESS - CONTROL DE VUELOS ======'),
     writeln('1. Modulo 1'),
     writeln('2. Modulo 2'),
     writeln('0. Salir'),
-    write('Seleccione una opcion TIENES QUE P[ONER PUNTO AL FINAL: '),
-    read(Sel),
+    write('Seleccione una opcion: '),
+    flush_output,
 
+    leer_opcion(Sel),
     seleccion(Sel),
 
     Sel = 0,
     !.
+
+leer_opcion(Opcion) :-
+    read_line_to_string(user_input, Linea),
+    (
+        Linea == end_of_file
+        ->
+        Opcion = 0
+        ;
+        normalize_space(string(Texto), Linea),
+        (
+            catch(number_string(Numero, Texto), _, fail),
+            integer(Numero)
+            ->
+            Opcion = Numero
+            ;
+            Opcion = invalida
+        )
+    ).
 
 seleccion(1) :-
     modulo1:menu.
