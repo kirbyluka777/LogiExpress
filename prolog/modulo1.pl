@@ -1,62 +1,9 @@
-:- module(modulo1, [menu/0]).
-:- use_module(utils).
-
-:- dynamic vuelo/7.
-:- dynamic tmc/1.
-
-% los pasajerois esperan minimo 45 min entre la llegada de un vuelo y la salida otro
-tmc(45).
-
-cargar_vuelos(Archivo) :-
-    retractall(vuelo(_,_,_,_,_,_,_)),
-    open(Archivo, read, Flujo),
-    leer_vuelos(Flujo),
-    close(Flujo).
-
-leer_vuelos(Flujo) :-
-    read_line_to_string(Flujo, Linea),
-    (
-        Linea == end_of_file
-        ->
-        true
-        ;
-        (
-            Linea \= "",
-            parsear_vuelo(Linea)
-            ->
-            leer_vuelos(Flujo)
-            ;
-            leer_vuelos(Flujo)
-        )
+:- module(modulo1, [menu/0,
+    cargar_vuelos/1,
+    vuelo/7,
+    tmc/1]
     ).
-
-parsear_vuelo(Linea) :-
-    split_string(Linea, "|", "", Campos),
-    Campos = [
-        Origen,
-        Destino,
-        Salida,
-        Llegada,
-        CostoTexto,
-        Codigo,
-        Dias
-    ],
-    number_string(Costo, CostoTexto),
-    assertz(vuelo(
-        Origen,
-        Destino,
-        Salida,
-        Llegada,
-        Costo,
-        Codigo,
-        Dias
-    )).
-
-configurar_tmc(Minutos) :-
-    number(Minutos),
-    Minutos >= 0,
-    retractall(tmc(_)),
-    assertz(tmc(Minutos)).
+:- use_module(utils).
 
 
 % Dada una ciudad C, generar la lista de todos los vuelos que salen de ella
@@ -102,20 +49,12 @@ mostrar_vuelos([
 % MENU INTERACTIVO
 
 menu :-
-    (
-        cargar_vuelos('../vuelos.txt')
-        ->
-        writeln('Vuelos cargados correctamente.')
-        ;
-        writeln('Error: No se pudo cargar vuelos.txt.')
-    ),
     repeat,
     nl,
     writeln('====== MODULO 1 ======'),
-    writeln('1. Recargar vuelos'),
-    writeln('2. Consultar vuelos de salida'),
-    writeln('3. Consultar vuelos de llegada'),
-    writeln('4. Configurar TMC'),
+    writeln('1. Consultar vuelos de salida'),
+    writeln('2. Consultar vuelos de llegada'),
+    writeln('3. Configurar TMC'),
     writeln('0. Volver'),
     leer_entero('Seleccione una opcion: ', Sel),
 
@@ -130,21 +69,13 @@ menu :-
     ).
 
 
-% Cargar vuelos
-
-seleccion(1) :-
-    cargar_vuelos('../vuelos.txt'),
-    writeln('Vuelos cargados correctamente.').
-
-
 % Consultar vuelos de salida
 
-seleccion(2) :-
+seleccion(1) :-
     write('Ingrese la ciudad de origen: '),
     flush_output,
     leer_linea(Ciudad),
     vuelos_salida(Ciudad, Lista),
-    mostrar_vuelos(Lista),
 
     (
         Lista = []
@@ -157,7 +88,7 @@ seleccion(2) :-
 
 % Consultar vuelos de llegada
 
-seleccion(3) :-
+seleccion(2) :-
     write('Ingrese la ciudad de destino: '),
     flush_output,
     leer_linea(Ciudad),
@@ -174,7 +105,7 @@ seleccion(3) :-
 
 % Configurar TMC
 
-seleccion(4) :-
+seleccion(3) :-
     leer_entero('Ingrese el TMC en minutos: ', Minutos),
     (
         integer(Minutos),
@@ -192,10 +123,3 @@ seleccion(0) :-
 
 seleccion(_) :-
     writeln('Opcion invalida.').
-
-vuelos_cargados(Lista) :-
-    findall(
-        vuelo(O,D,S,L,C,Cod,Dia),
-        vuelo(O,D,S,L,C,Cod,Dia),
-        Lista
-    ).

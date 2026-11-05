@@ -3,12 +3,13 @@
 ## Running
 clone repo
 ```
-git clone https://github.com/kirbyluka777/topicos.git
-cd topicos
+git clone https://github.com/kirbyluka777/LogiExpress.git
+cd LogiExpress
 ```
 ### Prolog
 ```
-swipl prolog/main.pl
+cd prolog
+swipl main.pl
 ```
 
 ### Haskell

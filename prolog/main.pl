@@ -1,7 +1,15 @@
 :- use_module(modulo1).
+:- use_module(modulo2, []).
 
 :- initialization(main).
 main :-
+    (
+        cargar_vuelos('../vuelos.txt')
+        ->
+        writeln('Vuelos cargados correctamente.')
+        ;
+        writeln('Error: No se pudo cargar vuelos.txt.')
+    ),
     repeat,
     nl,
     writeln('====== LOGIEXPRESS - CONTROL DE VUELOS ======'),
@@ -39,7 +47,7 @@ seleccion(1) :-
     modulo1:menu.
 
 seleccion(2) :-
-    writeln('No hay').
+    modulo2:menu.
 
 seleccion(0) :-
     writeln('Terminando programa...').
