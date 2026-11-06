@@ -1,4 +1,4 @@
-module Buscador
+module Modulo2
     ( menu
     , buscarRutas
     , operaEnDia

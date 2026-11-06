@@ -4,7 +4,7 @@ import System.Directory (doesFileExist)
 import System.Environment (getArgs)
 import System.Exit (exitFailure)
 import System.IO (hFlush, isEOF, stdout)
-import qualified Buscador
+import qualified Modulo2
 import qualified Modulo1
 import Tipos
 
@@ -55,7 +55,7 @@ menuPrincipal vuelos tmcActual = do
             nuevoTmc <- Modulo1.menu vuelos tmcActual
             menuPrincipal vuelos nuevoTmc
         "2" -> do
-            nuevoTmc <- Buscador.menu vuelos tmcActual
+            nuevoTmc <- Modulo2.menu vuelos tmcActual
             menuPrincipal vuelos nuevoTmc
         "0" -> putStrLn "Terminando programa..."
         _ -> do
