@@ -6,6 +6,7 @@ import System.Exit (exitFailure)
 import System.IO (hFlush, isEOF, stdout)
 import qualified Modulo2
 import qualified Modulo1
+import qualified Modulo3
 import Tipos
 
 main :: IO ()
@@ -47,6 +48,7 @@ menuPrincipal vuelos tmcActual = do
     putStrLn "\n====== LOGIEXPRESS - CONTROL DE VUELOS ======"
     putStrLn "1. Modulo 1 - Consultas basicas"
     putStrLn "2. Modulo 2 - Busqueda de rutas"
+    putStrLn "3. Modulo 3: Optimizacion de Rutas"
     putStrLn "0. Salir"
     opcion <- leerOpcion
 
@@ -57,6 +59,9 @@ menuPrincipal vuelos tmcActual = do
         "2" -> do
             nuevoTmc <- Modulo2.menu vuelos tmcActual
             menuPrincipal vuelos nuevoTmc
+        "3" -> do
+            nuevoTmc <- Modulo3.menu vuelos tmcActual
+            loopPrincipal vuelos nuevoTm
         "0" -> putStrLn "Terminando programa..."
         _ -> do
             putStrLn "Opcion invalida."

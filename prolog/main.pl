@@ -1,5 +1,6 @@
 :- use_module(modulo1).
 :- use_module(modulo2, []).
+:- use_module(modulo3).
 
 :- initialization(main).
 main :-
@@ -15,6 +16,7 @@ main :-
     writeln('====== LOGIEXPRESS - CONTROL DE VUELOS ======'),
     writeln('1. Modulo 1'),
     writeln('2. Modulo 2'),
+    writeln('3. Modulo 3'),
     writeln('0. Salir'),
     write('Seleccione una opcion: '),
     flush_output,
@@ -48,6 +50,9 @@ seleccion(1) :-
 
 seleccion(2) :-
     modulo2:menu.
+
+seleccion(3) :-
+    modulo3:menu.
 
 seleccion(0) :-
     writeln('Terminando programa...').
