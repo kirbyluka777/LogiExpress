@@ -1,80 +1,70 @@
 module Main where
 
-import System.IO
+import System.Directory (doesFileExist)
+import System.Environment (getArgs)
+import System.Exit (exitFailure)
+import System.IO (hFlush, isEOF, stdout)
+import qualified Buscador
+import qualified Modulo1
 import Tipos
-import LecturaDatos
-import Buscador
-
-
-menu :: [Vuelo] -> Int -> IO ()
-menu vuelos tmcActual = do
-    putStrLn "\n--- LOGIEXPRESS - MENU PRINCIPAL ---"
-    putStrLn "1. Ver todos los vuelos"
-    putStrLn "2. Buscar rutas validas (Modulo 2)"
-    putStrLn "3. Consultar salidas por ciudad"
-    putStrLn "4. Consultar llegadas por ciudad"
-    putStrLn "5. Configurar TMC"
-    putStrLn "6. Salir"
-    putStr "Elige una opcion: "
-    hFlush stdout
-    op <- getLine
-    
-    case op of
-        "1" -> do
-            mapM_ print vuelos
-            menu vuelos tmcActual
-        "2" -> do
-            putStr "Ciudad de origen: "
-            hFlush stdout
-            org <- getLine
-            putStr "Ciudad de destino: "
-            hFlush stdout
-            dest <- getLine
-            putStr "Dia de la semana (ej. Lunes): "
-            hFlush stdout
-            dia <- getLine
-            putStr "Numero maximo de escalas (K): "
-            hFlush stdout
-            kStr <- getLine
-            let maxEsc = read kStr :: Int
-            
-            let rutas = buscarRutas org dest dia tmcActual maxEscalas vuelos [org]
-            putStrLn $ "\nSe encontraron " ++ show (length rutas) ++ " rutas validas:"
-            if null rutas
-                then putStrLn "No hay rutas disponibles que cumplan las restricciones."
-                else mapM_ mostrarRuta rutas
-            menu vuelos tmcActual
-        "3" -> do
-            putStr "Ciudad de origen: "
-            hFlush stdout
-            c <- getLine
-            mapM_ print (vuelosSalida c vuelos)
-            menu vuelos tmcActual
-        "4" -> do
-            putStr "Ciudad de llegada: "
-            hFlush stdout
-            c <- getLine
-            mapM_ print (vuelosLlegada c vuelos)
-            menu vuelos tmcActual
-        "5" -> do
-            putStr "Minutos de TMC (actual: "
-            putStr $ show tmcActual
-            putStrLn "):"
-            putStr "Nuevo valor en minutos: "
-            hFlush stdout
-            tmcStr <- getLine
-            let nuevoTmc = read tmcStr :: Int
-            putStrLn $ "[Info] TMC fijado en " ++ show nuevoTmc ++ " minutos."
-            menu vuelos nuevoTmc
-        "6" -> putStrLn "Saliendo del sistema..."
-        _   -> do
-            putStrLn "Opcion invalida, prueba otra vez."
-            menu vuelos tmcActual
 
 main :: IO ()
 main = do
+    argumentos <- getArgs
+    rutaArchivo <- seleccionarArchivo argumentos
     putStrLn "Cargando vuelos..."
-    vuelos <- cargarVuelos
-    putStrLn $ "Cargados " ++ show (length vuelos) ++ " vuelos correctamente."
+    resultado <- Modulo1.cargarVuelos rutaArchivo
 
-    menu vuelos 45
+    case resultado of
+        Left mensaje -> do
+            putStrLn mensaje
+            putStrLn "No se pudo iniciar el sistema. Verifique vuelos.txt."
+            exitFailure
+        Right vuelos -> do
+            putStrLn ("Vuelos cargados correctamente: " ++ show (length vuelos))
+            menuPrincipal vuelos 45
+
+seleccionarArchivo :: [String] -> IO FilePath
+seleccionarArchivo (ruta:_) = return ruta
+seleccionarArchivo [] = do
+    let candidatos = ["vuelos.txt", "haskell/vuelos.txt", "../vuelos.txt"]
+    existentes <- buscarExistentes candidatos
+    return (case existentes of
+                (ruta:_) -> ruta
+                [] -> "vuelos.txt")
+
+buscarExistentes :: [FilePath] -> IO [FilePath]
+buscarExistentes [] = return []
+buscarExistentes (ruta:resto) = do
+    existe <- doesFileExist ruta
+    if existe
+        then return [ruta]
+        else buscarExistentes resto
+
+-- Menu principal: cada modulo recibe el TMC actual y devuelve el nuevo valor.
+menuPrincipal :: Grafo -> Int -> IO ()
+menuPrincipal vuelos tmcActual = do
+    putStrLn "\n====== LOGIEXPRESS - CONTROL DE VUELOS ======"
+    putStrLn "1. Modulo 1 - Consultas basicas"
+    putStrLn "2. Modulo 2 - Busqueda de rutas"
+    putStrLn "0. Salir"
+    opcion <- leerOpcion
+
+    case opcion of
+        "1" -> do
+            nuevoTmc <- Modulo1.menu vuelos tmcActual
+            menuPrincipal vuelos nuevoTmc
+        "2" -> do
+            nuevoTmc <- Buscador.menu vuelos tmcActual
+            menuPrincipal vuelos nuevoTmc
+        "0" -> putStrLn "Terminando programa..."
+        _ -> do
+            putStrLn "Opcion invalida."
+            menuPrincipal vuelos tmcActual
+
+leerOpcion :: IO String
+leerOpcion = do
+    putStr "Seleccione una opcion: "
+    hFlush stdout
+    fin <- isEOF
+    if fin then return "0" else getLine
