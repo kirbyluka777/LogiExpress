@@ -1,0 +1,10 @@
+# Archivos compilados e intermedios de Haskell
+*.o
+*.hi
+
+# Binarios ejecutables
+*.exe
+main
+Modulo1
+Modulo2
+Modulo3
