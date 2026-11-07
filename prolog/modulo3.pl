@@ -59,9 +59,23 @@ partir_tiempo(Pivote, [H|T], Menores, [H|Mayores]) :-
     tiempo_ruta(H, T1), tiempo_ruta(Pivote, T2), T1 > T2,
     partir_tiempo(Pivote, T, Menores, Mayores).
 
-%Menú Modulo 3
 menu :-
     writeln('\n====== MODULO 3: OPTIMIZACION ======'),
+    writeln('1. Ruta mas economica'),
+    writeln('2. Ruta mas rapida'),
+    writeln('3. Reporte ordenado por Costo'),
+    writeln('4. Reporte ordenado por Tiempo'),
+    writeln('0. Volver al menu principal'),
+    leer_entero('Seleccione una opcion: ', Sel),
+    seleccion(Sel).
+
+seleccion(0) :-
+    writeln('Volviendo al menu principal...').
+
+% Opciones válidas (1 a 4): Pide datos, calcula y vuelve a mostrar el menú de Módulo 3
+seleccion(Sel) :-
+    member(Sel, [1, 2, 3, 4]),
+    !,
     write('Ciudad de origen: '), flush_output, leer_linea(Origen),
     write('Ciudad de destino: '), flush_output, leer_linea(Destino),
     write('Dia de viaje: '), flush_output, leer_linea(Dia),
@@ -72,13 +86,16 @@ menu :-
     ( Rutas == [] ->
         writeln('No hay rutas validas para optimizar.')
     ;
-        writeln('1. Ruta mas economica'),
-        writeln('2. Ruta mas rapida'),
-        writeln('3. Reporte ordenado por Costo'),
-        writeln('4. Reporte ordenado por Tiempo'),
-        leer_entero('Seleccione una opcion: ', Sel),
         ejecutar_optimizacion(Sel, Rutas)
-    ).
+    ),
+    nl,
+    menu.
+
+% Opción inválida: Muestra error y vuelve a mostrar el menú
+seleccion(_) :-
+    writeln('Opcion invalida.'),
+    nl,
+    menu.
 
 ejecutar_optimizacion(1, Rutas) :-
     quicksort_costo(Rutas, [MasEconomica|_]),
@@ -101,5 +118,3 @@ ejecutar_optimizacion(4, Rutas) :-
     quicksort_tiempo(Rutas, Ordenadas),
     writeln('\n--- RUTAS ORDENADAS POR TIEMPO ---'),
     modulo2:mostrar_lista_rutas(Ordenadas, 1).
-
-ejecutar_optimizacion(_, _) :- writeln('Opcion invalida.').

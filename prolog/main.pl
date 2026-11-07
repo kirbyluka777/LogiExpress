@@ -1,6 +1,7 @@
 :- use_module(modulo1).
 :- use_module(modulo2, []).
 :- use_module(modulo3).
+:- use_module(utils, [leer_entero/2]).
 
 :- initialization(main).
 main :-
@@ -18,31 +19,16 @@ main :-
     writeln('2. Modulo 2'),
     writeln('3. Modulo 3'),
     writeln('0. Salir'),
-    write('Seleccione una opcion: '),
-    flush_output,
 
-    leer_opcion(Sel),
-    seleccion(Sel),
-
-    Sel = 0,
-    !.
-
-leer_opcion(Opcion) :-
-    read_line_to_string(user_input, Linea),
+        leer_entero('Seleccione una opcion: ', Sel),
     (
-        Linea == end_of_file
+        Sel = 0
         ->
-        Opcion = 0
+        writeln('Termiando aplicacion...'),
+        !
         ;
-        normalize_space(string(Texto), Linea),
-        (
-            catch(number_string(Numero, Texto), _, fail),
-            integer(Numero)
-            ->
-            Opcion = Numero
-            ;
-            Opcion = invalida
-        )
+        once(seleccion(Sel)),
+        fail
     ).
 
 seleccion(1) :-
