@@ -56,19 +56,6 @@ vuelo_disponible(DiasVuelo, Dia) :-
     member(Dia, ListaDias).
 
 
-% CONVERSION DE HORAS
-
-% Converts HH:MM into total minutes.
-
-hora_a_minutos(Hora, Total) :-
-    split_string(Hora, ":", "", [HorasTexto, MinutosTexto]),
-    number_string(Horas, HorasTexto),
-    number_string(Minutos, MinutosTexto),
-    between(0, 23, Horas),
-    between(0, 59, Minutos),
-    Total is Horas * 60 + Minutos.
-
-
 % VALIDACION DE CONEXIONES
 
 % The next flight must depart at least TMC minutes

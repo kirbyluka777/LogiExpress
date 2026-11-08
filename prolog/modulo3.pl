@@ -1,6 +1,6 @@
 :- module(modulo3, [menu/0]).
 :- use_module(utils).
-:- use_module(modulo2).
+:- use_module(modulo2, []).
 
 % Calculo de Costo
 costo_ruta([], 0).
@@ -9,55 +9,53 @@ costo_ruta([vuelo(_,_,_,_,Costo,_,_)|Resto], Total) :-
     Total is SubTotal + Costo.
 
 % Calculo de Tiempo
-% Reutilizamos hora_a_minutos asumiendo formato HH:MM
-hora_a_minutos_mod3(Hora, Total) :-
-    split_string(Hora, ":", "", [HorasTexto, MinutosTexto]),
-    number_string(Horas, HorasTexto),
-    number_string(Minutos, MinutosTexto),
-    Total is Horas * 60 + Minutos.
-
 tiempo_ruta(Ruta, Tiempo) :-
     Ruta = [PrimerVuelo|_],
     last(Ruta, UltimoVuelo),
     PrimerVuelo = vuelo(_,_,Salida,_,_,_,_),
     UltimoVuelo = vuelo(_,_,_,Llegada,_,_,_),
-    hora_a_minutos_mod3(Salida, MinSalida),
-    hora_a_minutos_mod3(Llegada, MinLlegada),
-    (MinLlegada >= MinSalida -> 
-        Tiempo is MinLlegada - MinSalida 
-    ; 
+    hora_a_minutos(Salida, MinSalida),
+    hora_a_minutos(Llegada, MinLlegada),
+    (MinLlegada >= MinSalida ->
+        Tiempo is MinLlegada - MinSalida
+    ;
         Tiempo is MinLlegada + 1440 - MinSalida).
 
 % QuickSort
-quicksort_costo([], []).
-quicksort_costo([H|T], Ordenada) :-
-    partir_costo(H, T, Menores, Mayores),
-    quicksort_costo(Menores, MenoresOrd),
-    quicksort_costo(Mayores, MayoresOrd),
-    append(MenoresOrd, [H|MayoresOrd], Ordenada).
+quicksort(_, [], []).
+quicksort(Criterio, [Pivote|Resto], Ordenada) :-
+    valor_criterio(Criterio, Pivote, ValorPivote),
+    partir(Criterio, ValorPivote, Resto, Menores, Mayores),
+    quicksort(Criterio, Menores, MenoresOrd),
+    quicksort(Criterio, Mayores, MayoresOrd),
+    append(MenoresOrd, [Pivote|MayoresOrd], Ordenada).
 
-partir_costo(_, [], [], []).
-partir_costo(Pivote, [H|T], [H|Menores], Mayores) :-
-    costo_ruta(H, C1), costo_ruta(Pivote, C2), C1 =< C2,
-    partir_costo(Pivote, T, Menores, Mayores).
-partir_costo(Pivote, [H|T], Menores, [H|Mayores]) :-
-    costo_ruta(H, C1), costo_ruta(Pivote, C2), C1 > C2,
-    partir_costo(Pivote, T, Menores, Mayores).
+% Particion
+partir(_, _, [], [], []).
+partir(Criterio, ValorPivote, [H|T], Menores, Mayores) :-
+    valor_criterio(Criterio, H, Valor),
+    (Valor =< ValorPivote ->
+        Menores = [H|RestoMenores],
+        Mayores = RestoMayores
+    ;
+        Menores = RestoMenores,
+        Mayores = [H|RestoMayores]
+    ),
+    partir(Criterio, ValorPivote, T, RestoMenores, RestoMayores).
 
-quicksort_tiempo([], []).
-quicksort_tiempo([H|T], Ordenada) :-
-    partir_tiempo(H, T, Menores, Mayores),
-    quicksort_tiempo(Menores, MenoresOrd),
-    quicksort_tiempo(Mayores, MayoresOrd),
-    append(MenoresOrd, [H|MayoresOrd], Ordenada).
+% Valor usado para comparar cada ruta.
+valor_criterio(costo, Ruta, Valor) :-
+    costo_ruta(Ruta, Valor).
 
-partir_tiempo(_, [], [], []).
-partir_tiempo(Pivote, [H|T], [H|Menores], Mayores) :-
-    tiempo_ruta(H, T1), tiempo_ruta(Pivote, T2), T1 =< T2,
-    partir_tiempo(Pivote, T, Menores, Mayores).
-partir_tiempo(Pivote, [H|T], Menores, [H|Mayores]) :-
-    tiempo_ruta(H, T1), tiempo_ruta(Pivote, T2), T1 > T2,
-    partir_tiempo(Pivote, T, Menores, Mayores).
+valor_criterio(tiempo, Ruta, Valor) :-
+    tiempo_ruta(Ruta, Valor).
+
+% Se conservan estos nombres para mantener la interfaz anterior.
+quicksort_costo(Lista, Ordenada) :-
+    quicksort(costo, Lista, Ordenada).
+
+quicksort_tiempo(Lista, Ordenada) :-
+    quicksort(tiempo, Lista, Ordenada).
 
 menu :-
     writeln('\n====== MODULO 3: OPTIMIZACION ======'),
@@ -97,24 +95,43 @@ seleccion(_) :-
     nl,
     menu.
 
-ejecutar_optimizacion(1, Rutas) :-
-    quicksort_costo(Rutas, [MasEconomica|_]),
-    writeln('\n--- RUTA MAS ECONOMICA ---'),
-    costo_ruta(MasEconomica, C), format('Costo Total: ~w~n', [C]),
-    modulo2:mostrar_vuelos_ruta(MasEconomica).
+% Ejecuta el ordenamiento una sola vez, segun la opcion elegida.
+ejecutar_optimizacion(Opcion, Rutas) :-
+    criterio_opcion(Opcion, Criterio),
+    ordenar_rutas(Criterio, Rutas, Ordenadas),
+    mostrar_resultado(Opcion, Ordenadas).
 
-ejecutar_optimizacion(2, Rutas) :-
-    quicksort_tiempo(Rutas, [MasRapida|_]),
-    writeln('\n--- RUTA MAS RAPIDA ---'),
-    tiempo_ruta(MasRapida, T), format('Tiempo Total (min): ~w~n', [T]),
-    modulo2:mostrar_vuelos_ruta(MasRapida).
+criterio_opcion(1, costo).
+criterio_opcion(2, tiempo).
+criterio_opcion(3, costo).
+criterio_opcion(4, tiempo).
 
-ejecutar_optimizacion(3, Rutas) :-
-    quicksort_costo(Rutas, Ordenadas),
+ordenar_rutas(costo, Rutas, Ordenadas) :-
+    quicksort_costo(Rutas, Ordenadas).
+
+ordenar_rutas(tiempo, Rutas, Ordenadas) :-
+    quicksort_tiempo(Rutas, Ordenadas).
+
+mostrar_resultado(1, [MasEconomica|_]) :-
+    costo_ruta(MasEconomica, Costo),
+    mostrar_ruta_optima('RUTA MAS ECONOMICA', 'Costo total', Costo, MasEconomica).
+
+mostrar_resultado(2, [MasRapida|_]) :-
+    tiempo_ruta(MasRapida, Tiempo),
+    minutos_a_hora(Tiempo, TiempoHHMM),
+    format(string(Detalle), '~w (~w min)', [TiempoHHMM, Tiempo]),
+    mostrar_ruta_optima('RUTA MAS RAPIDA', 'Tiempo total', Detalle, MasRapida).
+
+mostrar_resultado(3, Ordenadas) :-
     writeln('\n--- RUTAS ORDENADAS POR COSTO ---'),
     modulo2:mostrar_lista_rutas(Ordenadas, 1).
 
-ejecutar_optimizacion(4, Rutas) :-
-    quicksort_tiempo(Rutas, Ordenadas),
+mostrar_resultado(4, Ordenadas) :-
     writeln('\n--- RUTAS ORDENADAS POR TIEMPO ---'),
     modulo2:mostrar_lista_rutas(Ordenadas, 1).
+
+% Muestra la ruta destacada sin repetir el formato de salida.
+mostrar_ruta_optima(Titulo, Etiqueta, Valor, Ruta) :-
+    format('~n--- ~w ---~n', [Titulo]),
+    format('~w: ~w~n', [Etiqueta, Valor]),
+    modulo2:mostrar_vuelos_ruta(Ruta).

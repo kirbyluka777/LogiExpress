@@ -9,7 +9,9 @@
     vuelo/7,
     tmc/1,
     configurar_tmc/1,
-    vuelos_cargados/1
+    vuelos_cargados/1,
+    hora_a_minutos/2,
+    minutos_a_hora/2
 ]).
 
 % Read a line without requiring quotes or a final period
@@ -121,3 +123,26 @@ vuelos_cargados(Lista) :-
         vuelo(O,D,S,L,C,Cod,Dia),
         Lista
     ).
+
+% CONVERSION DE HORAS
+
+% Convierte una hora HH:MM a minutos desde el inicio del dia.
+hora_a_minutos(Hora, Total) :-
+    string(Hora),
+    split_string(Hora, ":", "", [HorasTexto, MinutosTexto]),
+    string_length(HorasTexto, 2),
+    string_length(MinutosTexto, 2),
+    number_string(Horas, HorasTexto),
+    number_string(Minutos, MinutosTexto),
+    between(0, 23, Horas),
+    between(0, 59, Minutos),
+    Total is Horas * 60 + Minutos.
+
+% Convierte minutos a HH:MM. Si se trata de una duracion mayor a 24 horas,
+% conserva las horas totales (por ejemplo, 1500 minutos -> "25:00").
+minutos_a_hora(Total, Hora) :-
+    integer(Total),
+    Total >= 0,
+    Horas is Total // 60,
+    Minutos is Total mod 60,
+    format(string(Hora), '~|~`0t~d~2+:~|~`0t~d~2+', [Horas, Minutos]).
