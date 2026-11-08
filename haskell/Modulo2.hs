@@ -64,14 +64,19 @@ buscarRutas actual destinoFinal dia tmc maxEscalas todosVuelos rutaActual visita
                 ciudadIgual (origen vuelo) actual &&
                 not (any (ciudadIgual (destino vuelo)) visitadas) &&
                 operaEnDia (dias vuelo) dia &&
-                (null rutaActual ||
-                    salida vuelo >= llegada (head rutaActual) + tmc)
+                cumpleConexion rutaActual vuelo tmc
               ) todosVuelos
         in concat
             [ buscarRutas (destino vuelo) destinoFinal dia tmc maxEscalas
                 todosVuelos (vuelo : rutaActual) (destino vuelo : visitadas)
             | vuelo <- vuelosValidos
             ]
+
+-- rutaActual se guarda invertida: su primer elemento es el ultimo vuelo tomado
+cumpleConexion :: [Vuelo] -> Vuelo -> Int -> Bool
+cumpleConexion [] _ _ = True
+cumpleConexion (ultimoVuelo:_) siguienteVuelo tmc =
+    salida siguienteVuelo >= llegada ultimoVuelo + tmc
 
 operaEnDia :: String -> String -> Bool
 operaEnDia diasOperacion consulta

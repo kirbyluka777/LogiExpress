@@ -59,7 +59,7 @@ menu vuelos tmcActual = do
             menu vuelos tmcActual
 
 mostrarVuelos :: [Vuelo] -> IO ()
-mostrarVuelos = mapM_ (putStrLn . show)
+mostrarVuelos = foldr (\vuelo siguiente -> putStrLn (show vuelo) >> siguiente) (return ())
 
 leerEntrada :: String -> IO String
 leerEntrada mensaje = do
