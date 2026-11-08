@@ -1,6 +1,6 @@
 :- use_module(modulo1).
 :- use_module(modulo2, []).
-:- use_module(modulo3).
+:- use_module(modulo3, []).
 :- use_module(utils, [leer_entero/2]).
 
 :- initialization(main).
