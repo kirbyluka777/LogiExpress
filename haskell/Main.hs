@@ -61,7 +61,7 @@ menuPrincipal vuelos tmcActual = do
             menuPrincipal vuelos nuevoTmc
         "3" -> do
             nuevoTmc <- Modulo3.menu vuelos tmcActual
-            loopPrincipal vuelos nuevoTm
+            menuPrincipal vuelos nuevoTmc
         "0" -> putStrLn "Terminando programa..."
         _ -> do
             putStrLn "Opcion invalida."
